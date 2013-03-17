@@ -25,7 +25,7 @@
 #include <stagefright/MediaBuffer.h>
 #include <stagefright/MediaDebug.h>
 #include <stagefright/MetaData.h>
-#include <surfaceflinger/Surface.h>
+#include <gui/Surface.h>
 #include "VideoEditorTools.h"
 
 //#define PREVIEW_DEBUG 1
@@ -384,7 +384,7 @@ void NativeWindowRenderer::queueInternalBuffer(ANativeWindow *anw,
     int64_t timeUs;
     CHECK(buffer->meta_data()->findInt64(kKeyTime, &timeUs));
     native_window_set_buffers_timestamp(anw, timeUs * 1000);
-    status_t err = anw->queueBuffer(anw, buffer->graphicBuffer().get());
+    status_t err = anw->queueBuffer(anw, buffer->graphicBuffer().get(), -1);
     if (err != 0) {
         LOGE("queueBuffer failed with error %s (%d)", strerror(-err), -err);
         return;
@@ -403,14 +403,12 @@ void NativeWindowRenderer::queueExternalBuffer(ANativeWindow* anw,
     native_window_set_buffer_count(anw, 3);
 
     ANativeWindowBuffer* anb;
-    anw->dequeueBuffer(anw, &anb);
+    CHECK(NO_ERROR == native_window_dequeue_buffer_and_wait(anw, &anb));
     CHECK(anb != NULL);
-
-    sp<GraphicBuffer> buf(new GraphicBuffer(anb, false));
-    CHECK(NO_ERROR == anw->lockBuffer(anw, buf->getNativeBuffer()));
 
     // Copy the buffer
     uint8_t* img = NULL;
+    sp<GraphicBuffer> buf(new GraphicBuffer(anb, false));
     buf->lock(GRALLOC_USAGE_SW_WRITE_OFTEN, (void**)(&img));
     copyI420Buffer(buffer, img, width, height, buf->getStride());
 
@@ -425,7 +423,7 @@ void NativeWindowRenderer::queueExternalBuffer(ANativeWindow* anw,
 #endif
 
     buf->unlock();
-    CHECK(NO_ERROR == anw->queueBuffer(anw, buf->getNativeBuffer()));
+    CHECK(NO_ERROR == anw->queueBuffer(anw, buf->getNativeBuffer(), -1));
 }
 
 void NativeWindowRenderer::copyI420Buffer(MediaBuffer* src, uint8_t* dst,
@@ -586,10 +584,8 @@ RenderInput::RenderInput(NativeWindowRenderer* renderer, GLuint textureId)
     : mRenderer(renderer)
     , mTextureId(textureId) {
     mST = new SurfaceTexture(mTextureId);
-    uint32_t outWidth, outHeight, outTransform;
-    mST->connect(NATIVE_WINDOW_API_MEDIA, &outWidth, &outHeight, &outTransform);
-
     mSTC = new SurfaceTextureClient(mST);
+    native_window_connect(mSTC.get(), NATIVE_WINDOW_API_MEDIA);
 }
 
 RenderInput::~RenderInput() {

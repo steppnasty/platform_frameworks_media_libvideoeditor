@@ -43,7 +43,7 @@
 #include <media/stagefright/MetaData.h>
 #include <media/stagefright/OMXCodec.h>
 
-#include <surfaceflinger/Surface.h>
+#include <gui/Surface.h>
 #include <gui/ISurfaceTexture.h>
 #include <gui/SurfaceTextureClient.h>
 #include <surfaceflinger/ISurfaceComposer.h>
@@ -120,7 +120,7 @@ struct AwesomeNativeWindowRenderer : public AwesomeRenderer {
 
     virtual void render(MediaBuffer *buffer) {
         status_t err = mNativeWindow->queueBuffer(
-                mNativeWindow.get(), buffer->graphicBuffer().get());
+                mNativeWindow.get(), buffer->graphicBuffer().get(), -1);
         if (err != 0) {
             LOGE("queueBuffer failed with error %s (%d)", strerror(-err),
                     -err);

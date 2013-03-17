@@ -33,10 +33,10 @@
 
 #include "OMX_IVCommon.h"
 #include "mediaplayer.h"
-#include <surfaceflinger/Surface.h>
+#include <gui/Surface.h>
 #include <surfaceflinger/ISurface.h>
 #include <surfaceflinger/ISurfaceComposer.h>
-#include <surfaceflinger/SurfaceComposerClient.h>
+#include <gui/SurfaceComposerClient.h>
 #include <media/stagefright/MediaBuffer.h>
 #include "PreviewRenderer.h"
 

@@ -40,7 +40,7 @@
 #include <media/stagefright/MetaData.h>
 #include <media/stagefright/OMXCodec.h>
 
-#include <surfaceflinger/Surface.h>
+#include <gui/Surface.h>
 #include <media/stagefright/foundation/ALooper.h>
 
 namespace android {
